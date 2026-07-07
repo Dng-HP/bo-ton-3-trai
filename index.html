@@ -455,7 +455,7 @@ function render(){
   renderSummary();
 }
 
-function resetF(){fsel.value='all';document.getElementById('sstep').value='50';document.getElementById('dsel').value='07/07/2026';render();}
+function resetF(){fsel.value='all';document.getElementById('sstep').value='50';if(typeof fpInst!=='undefined'&&fpInst)fpInst.setDate('2026-07-07',true);else document.getElementById('dsel').value='07/07/2026';render();}
 function renderWarnings(){
   const warns=[];
   const chip=s=>`<code style="background:#ffe8b0;padding:1px 6px;border-radius:3px;font-size:11px">${s}</code>`;
@@ -479,11 +479,11 @@ renderWarnings();
 render();
 </script>
 <script>
-flatpickr('#dsel',{
+const fpInst=flatpickr('#dsel',{
   dateFormat:'d/m/Y',
-  minDate:'23/04/2026',
-  maxDate:'07/07/2026',
-  defaultDate:'07/07/2026',
+  minDate:'2026-04-23',
+  maxDate:'2026-07-07',
+  defaultDate:'2026-07-07',
   allowInput:false,
   onChange:function(){render();}
 });
