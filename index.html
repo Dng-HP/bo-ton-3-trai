@@ -59,7 +59,8 @@ tfoot td.ll{text-align:left;}
 .chart-row{display:flex;gap:20px;flex-wrap:wrap;}
 .cbox{flex:1;min-width:280px;}
 
-.flatpickr-input{width:110px;text-align:center;letter-spacing:1px;}</style>
+.flatpickr-input{width:110px;text-align:center;letter-spacing:1px;cursor:pointer;}
+.flatpickr-calendar{z-index:999999!important;}</style>
 </head>
 <body>
 <div class="header">
@@ -73,7 +74,7 @@ tfoot td.ll{text-align:left;}
   <label>Trại:</label>
   <select id="fsel" onchange="render()"><option value="all">Tất cả trại</option></select>
   <label>Ngày:</label>
-  <input type="text" id="dsel" value="07/07/2026" placeholder="DD/MM/YYYY" readonly="readonly">
+  <input type="text" id="dsel" value="07/07/2026" placeholder="DD/MM/YYYY">
   <label>Bước cân:</label>
   <select id="sstep" onchange="render()">
     <option value="50" selected>50 kg</option><option value="30">30 kg</option><option value="20">20 kg</option>
@@ -485,7 +486,8 @@ const fpInst=flatpickr('#dsel',{
   maxDate:'2026-07-07',
   defaultDate:'2026-07-07',
   allowInput:false,
-  onChange:function(){render();}
+  appendTo:document.body,
+  onChange:function(sel,dateStr){document.getElementById('dsel').value=dateStr;render();}
 });
 </script>
 </body>
