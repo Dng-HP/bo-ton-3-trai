@@ -378,29 +378,29 @@ function render(){
 
     });
     h+='</tr></thead><tbody>';
-    const cTtot={};pl2.forEach(l=>cTtot[l]=0);
     let gT=0;
     pb.forEach(b=>{
-      const rowNet=pl2.reduce((s,l)=>{const lt=loPls[l].reduce((s2,p)=>s2+(PM[b][l][p]||0),0);return s+Math.max(0,lt-(Mded[b][l]||0));},0);
-      if(!rowNet)return;
+      // Chỉ hiển thị hàng có bò tồn (remaining)
+      const rowRem=pl2.reduce((s,l)=>s+loPls[l].reduce((s2,p)=>s2+(PM[b][l][p]||0),0),0);
+      if(!rowRem)return;
       h+=`<tr><td class="ll">${bLbl(b,step)}</td>`;
       pl2.forEach(l=>{
-        const ded_b=Mded[b][l]||0;
-        let lotSum=0;
         loPls[l].forEach((p,i)=>{
-          const v=PM[b][l][p]||0;lotSum+=v;
+          const v=PM[b][l][p]||0;
           const brd=i===0?'border-left:2px solid #aab':'';
           h+=`<td class="${cc(v,mx2)}" style="${brd}">${v||''}</td>`;
         });
-        const net=Math.max(0,lotSum-ded_b);cTtot[l]+=net;
       });
-      gT+=rowNet;h+=`<td class="tc">${rowNet}</td></tr>`;
+      gT+=rowRem;h+=`<td class="tc">${rowRem}</td></tr>`;
     });
+    // Tổng: trừ deductions ở cấp LÔ (không phải cấp bin) → khớp với tab Tóm tắt Lô
+    // cTded[l] = tổng deductions của lô l (tính bởi buildPivotPL)
+    const lotNet=l=>Math.max(0,loPls[l].reduce((s,p)=>s+(pcT[l][p]||0),0)-(cTded[l]||0));
+    const gNet=pl2.reduce((s,l)=>s+lotNet(l),0);
     h+='</tbody><tfoot><tr><td class="ll">Tổng</td>';
     pl2.forEach(l=>{
       loPls[l].forEach(p=>h+=`<td>${pcT[l][p]||0}</td>`);
     });
-    const gNet=Object.values(cTtot).reduce((s,v)=>s+v,0);
     h+=`<td>${gNet}</td></tr></tfoot></table></div>`;
     pivHtml=h;
   }
