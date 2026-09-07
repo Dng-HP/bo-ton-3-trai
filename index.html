@@ -360,14 +360,18 @@ function render(){
     const{bins:pb,los:pl2,loPls,loFarm,loDays,M:PM,Mded,cT:pcT,cTded}=ppRes;
     let mx2=0;pb.forEach(b=>pl2.forEach(l=>loPls[l].forEach(p=>{if((PM[b][l][p]||0)>mx2)mx2=PM[b][l][p];})));
     // Header row 1: lot groups
+    // PL types có mặt trong dữ liệu (theo thứ tự PL_ORDER)
+    const plsPresent=PL_ORDER.filter(p=>pl2.some(l=>loPls[l].includes(p)));
     let h='<div class="twrap"><table class="pivot-tbl"><thead><tr><th class="ll" rowspan="2" style="white-space:nowrap">Khoảng cân (kg)</th>';
     pl2.forEach(l=>{
       const nc=loPls[l].length;
       const fc=FARM_COLORS[loFarm[l]]||'#1a3a5c';
       h+=`<th colspan="${nc}" style="border-left:2px solid rgba(255,255,255,.4);background:${fc}">${l}<br><span style="font-size:9px;opacity:.8;font-weight:400">${loFarm[l]||''}</span><br><span style="font-size:9px;opacity:.7;font-weight:400">${loDays[l]||0} ngày</span></th>`;
     });
+    // Subtotal header cho từng PL type
+    h+=`<th colspan="${plsPresent.length}" style="background:#37474f;border-left:3px solid rgba(255,255,255,.6)">Tổng theo loại</th>`;
     h+='<th rowspan="2">Tổng</th></tr>';
-    // Header row 2: PL sub-cols + subtotal per lot
+    // Header row 2: PL sub-cols per lot + subtotal PL headers
     h+='<tr>';
     pl2.forEach(l=>{
       loPls[l].forEach((p,i)=>{
@@ -375,7 +379,11 @@ function render(){
         const cls=p==='Cái'?'pl-cai':p==='Thiến'?'pl-thien':'pl-ca';
         h+=`<th style="font-size:10px;font-weight:600;${brd}"><span class="${cls}" style="padding:1px 5px">${p}</span></th>`;
       });
-
+    });
+    plsPresent.forEach((p,i)=>{
+      const brd=i===0?'border-left:3px solid rgba(255,255,255,.6);background:#37474fee':'background:#37474fee';
+      const cls=p==='Cái'?'pl-cai':p==='Thiến'?'pl-thien':'pl-ca';
+      h+=`<th style="font-size:10px;font-weight:700;${brd}"><span class="${cls}" style="padding:1px 5px">${p}</span></th>`;
     });
     h+='</tr></thead><tbody>';
     let gT=0;
@@ -391,15 +399,26 @@ function render(){
           h+=`<td class="${cc(v,mx2)}" style="${brd}">${v||''}</td>`;
         });
       });
+      // Subtotal cells theo PL type
+      plsPresent.forEach((p,i)=>{
+        const sv=pl2.reduce((s,l)=>s+(PM[b][l][p]||0),0);
+        const brd=i===0?'border-left:3px solid #78909c':'';
+        h+=`<td class="tc" style="font-weight:600;background:#eceff1;${brd}">${sv||''}</td>`;
+      });
       gT+=rowRem;h+=`<td class="tc">${rowRem}</td></tr>`;
     });
     // Tổng: trừ deductions ở cấp LÔ (không phải cấp bin) → khớp với tab Tóm tắt Lô
-    // cTded[l] = tổng deductions của lô l (tính bởi buildPivotPL)
     const lotNet=l=>Math.max(0,loPls[l].reduce((s,p)=>s+(pcT[l][p]||0),0)-(cTded[l]||0));
     const gNet=pl2.reduce((s,l)=>s+lotNet(l),0);
     h+='</tbody><tfoot><tr><td class="ll">Tổng</td>';
     pl2.forEach(l=>{
       loPls[l].forEach(p=>h+=`<td>${pcT[l][p]||0}</td>`);
+    });
+    // Subtotal footer theo PL type
+    plsPresent.forEach((p,i)=>{
+      const subT=pl2.reduce((s,l)=>s+(pcT[l][p]||0),0);
+      const brd=i===0?'border-left:3px solid rgba(255,255,255,.5)':'';
+      h+=`<td style="background:#263238;${brd}">${subT}</td>`;
     });
     h+=`<td>${gNet}</td></tr></tfoot></table></div>`;
     pivHtml=h;
